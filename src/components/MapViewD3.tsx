@@ -1,7 +1,16 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useMemo, useCallback, useLayoutEffect } from 'react';
-import * as d3 from 'd3';
+import {
+  geoMercator,
+  geoPath,
+  select,
+  range,
+  scaleLinear,
+  extent,
+  max,
+  min,
+} from 'd3';
 import { useStore } from '@/stores';
 import { Node, Flow } from '@/types';
 
@@ -143,8 +152,7 @@ export default function MapViewD3({ nodes, flows }: MapViewProps) {
     const center = [8.5, 9.3]; // Center of Nigeria
 
     // Create projection
-    const projection = d3
-      .geoMercator()
+    const projection = geoMercator()
       .center(center as [number, number])
       .fitSize([width, height], {
         type: 'FeatureCollection',
@@ -167,10 +175,10 @@ export default function MapViewD3({ nodes, flows }: MapViewProps) {
         ],
       } as any);
 
-    const path = d3.geoPath().projection(projection);
+    const path = geoPath().projection(projection);
 
     // Select SVG
-    const svg = d3.select(svgRef.current);
+    const svg = select(svgRef.current);
     svg.attr('width', width).attr('height', height);
 
     // Clear previous content
@@ -185,7 +193,7 @@ export default function MapViewD3({ nodes, flows }: MapViewProps) {
 
     // Add grid
     const gridGroup = svg.append('g').attr('class', 'grid').attr('opacity', 0.05);
-    for (let x of d3.range(bounds[0][0], bounds[1][0], 1)) {
+    for (let x of range(bounds[0][0], bounds[1][0], 1)) {
       gridGroup
         .append('line')
         .attr('x1', projection([x, bounds[0][1]])![0])
@@ -195,7 +203,7 @@ export default function MapViewD3({ nodes, flows }: MapViewProps) {
         .attr('stroke', COLORS.textSecondary)
         .attr('stroke-width', 0.5);
     }
-    for (let y of d3.range(bounds[0][1], bounds[1][1], 1)) {
+    for (let y of range(bounds[0][1], bounds[1][1], 1)) {
       gridGroup
         .append('line')
         .attr('x1', projection([bounds[0][0], y])![0])
@@ -324,13 +332,13 @@ export default function MapViewD3({ nodes, flows }: MapViewProps) {
 
     // Add hover and click interactions
     nodeGroup.on('mouseenter', function (event, d: Node) {
-      d3.select(this)
+      select(this)
         .select('.node-core')
         .transition()
         .duration(200)
         .attr('r', getNodeRadius(d) * 1.4);
 
-      d3.select(this)
+      select(this)
         .select('.node-glow')
         .attr('opacity', 0.5)
         .transition()
@@ -346,13 +354,13 @@ export default function MapViewD3({ nodes, flows }: MapViewProps) {
     });
 
     nodeGroup.on('mouseleave', function (event, d: Node) {
-      d3.select(this)
+      select(this)
         .select('.node-core')
         .transition()
         .duration(200)
         .attr('r', getNodeRadius(d));
 
-      d3.select(this).select('.node-glow').attr('opacity', 0);
+      select(this).select('.node-glow').attr('opacity', 0);
 
       setTooltip(null);
       set_hovered_node(null);
