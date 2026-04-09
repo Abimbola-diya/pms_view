@@ -228,22 +228,22 @@ export default function MapViewD3({ nodes, flows }: MapViewProps) {
 
     // Add flow lines
     const flowGroup = svg.append('g').attr('class', 'flows');
-    flowGroup
+    (flowGroup
       .selectAll('line')
       .data(flowData)
-      .join('line')
-      .attr('x1', (d) => projection([d.source.longitude, d.source.latitude])![0])
-      .attr('y1', (d) => projection([d.source.longitude, d.source.latitude])![1])
-      .attr('x2', (d) => projection([d.target.longitude, d.target.latitude])![0])
-      .attr('y2', (d) => projection([d.target.longitude, d.target.latitude])![1])
-      .attr('stroke', (d) => {
+      .join('line') as any)
+      .attr('x1', (d: any) => projection([d.source.longitude, d.source.latitude])![0])
+      .attr('y1', (d: any) => projection([d.source.longitude, d.source.latitude])![1])
+      .attr('x2', (d: any) => projection([d.target.longitude, d.target.latitude])![0])
+      .attr('y2', (d: any) => projection([d.target.longitude, d.target.latitude])![1])
+      .attr('stroke', (d: any) => {
         const color = NODE_TYPE_COLORS[d.source.node_type.toLowerCase()] || COLORS.textSecondary;
         return color;
       })
-      .attr('stroke-width', (d) => Math.max(1, Math.log(d.volume / 10000 + 1) * 1.5))
+      .attr('stroke-width', (d: any) => Math.max(1, Math.log(d.volume / 10000 + 1) * 1.5))
       .attr('opacity', 0.3)
       .attr('stroke-linecap', 'round')
-      .attr('class', (d) => `flow-line flow-${d.id}`);
+      .attr('class', (d: any) => `flow-line flow-${d.id}`);
 
     // Add flow direction arrows (animated dashes)
     const defs = svg.append('defs');
