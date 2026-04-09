@@ -1,0 +1,48 @@
+{
+  "type": "Topology",
+  "objects": {
+    "states": {
+      "type": "GeometryCollection",
+      "geometries": [
+        {"type": "Point", "properties": {"name": "Abia"}, "coordinates": [7.64, 5.83]},
+        {"type": "Point", "properties": {"name": "Adamawa"}, "coordinates": [12.14, 9.27]},
+        {"type": "Point", "properties": {"name": "Akwa Ibom"}, "coordinates": [8.19, 4.95]},
+        {"type": "Point", "properties": {"name": "Anambra"}, "coordinates": [7.0, 6.0]},
+        {"type": "Point", "properties": {"name": "Bauchi"}, "coordinates": [9.88, 10.31]},
+        {"type": "Point", "properties": {"name": "Bayelsa"}, "coordinates": [6.0, 4.5]},
+        {"type": "Point", "properties": {"name": "Benue"}, "coordinates": [8.74, 7.46]},
+        {"type": "Point", "properties": {"name": "Borno"}, "coordinates": [11.44, 11.68]},
+        {"type": "Point", "properties": {"name": "Cross River"}, "coordinates": [8.68, 6.3]},
+        {"type": "Point", "properties": {"name": "Delta"}, "coordinates": [5.74, 5.57]},
+        {"type": "Point", "properties": {"name": "Ebonyi"}, "coordinates": [8.12, 6.27]},
+        {"type": "Point", "properties": {"name": "Edo"}, "coordinates": [5.66, 6.49]},
+        {"type": "Point", "properties": {"name": "Ekiti"}, "coordinates": [5.27, 7.62]},
+        {"type": "Point", "properties": {"name": "Enugu"}, "coordinates": [7.5, 6.44]},
+        {"type": "Point", "properties": {"name": "FCT"}, "coordinates": [7.5, 9.09]},
+        {"type": "Point", "properties": {"name": "Gombe"}, "coordinates": [11.17, 10.29]},
+        {"type": "Point", "properties": {"name": "Imo"}, "coordinates": [7.02, 5.48]},
+        {"type": "Point", "properties": {"name": "Jigawa"}, "coordinates": [9.46, 12.18]},
+        {"type": "Point", "properties": {"name": "Kaduna"}, "coordinates": [7.44, 10.52]},
+        {"type": "Point", "properties": {"name": "Kano"}, "coordinates": [8.51, 12.0]},
+        {"type": "Point", "properties": {"name": "Kastina"}, "coordinates": [7.6, 12.99]},
+        {"type": "Point", "properties": {"name": "Kebbi"}, "coordinates": [4.2, 12.46]},
+        {"type": "Point", "properties": {"name": "Kogi"}, "coordinates": [6.74, 7.8]},
+        {"type": "Point", "properties": {"name": "Kwara"}, "coordinates": [5.6, 8.8]},
+        {"type": "Point", "properties": {"name": "Lagos"}, "coordinates": [3.39, 6.52]},
+        {"type": "Point", "properties": {"name": "Nasarawa"}, "coordinates": [8.55, 8.88]},
+        {"type": "Point", "properties": {"name": "Niger"}, "coordinates": [6.51, 9.17]},
+        {"type": "Point", "properties": {"name": "Ogun"}, "coordinates": [3.63, 6.8]},
+        {"type": "Point", "properties": {"name": "Ondo"}, "coordinates": [4.83, 7.0]},
+        {"type": "Point", "properties": {"name": "Osun"}, "coordinates": [4.55, 7.78]},
+        {"type": "Point", "properties": {"name": "Oyo"}, "coordinates": [4.0, 8.5]},
+        {"type": "Point", "properties": {"name": "Plateau"}, "coordinates": [9.17, 8.88]},
+        {"type": "Point", "properties": {"name": "Rivers"}, "coordinates": [6.92, 5.0]},
+        {"type": "Point", "properties": {"name": "Sokoto"}, "coordinates": [5.23, 13.06]},
+        {"type": "Point", "properties": {"name": "Taraba"}, "coordinates": [10.59, 8.8]},
+        {"type": "Point", "properties": {"name": "Yobe"}, "coordinates": [11.3, 11.8]},
+        {"type": "Point", "properties": {"name": "Zamfara"}, "coordinates": [6.01, 12.16]}
+      ]
+    }
+  },
+  "arcs": []
+}

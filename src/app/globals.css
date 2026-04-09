@@ -1,0 +1,406 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base ─────────────────────────────────────────────────────────────── */
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #0A0E27;
+  color: #E8E8E8;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* ─── Leaflet overrides ─────────────────────────────────────────────────── */
+.leaflet-container {
+  background: #0A0E27 !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+}
+.leaflet-control-attribution {
+  background: rgba(10,14,39,0.7) !important;
+  color: #444 !important;
+  font-size: 9px !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+}
+.leaflet-control-attribution a { color: #555 !important; }
+.leaflet-tile { filter: brightness(0.85) saturate(0.6); }
+
+/* ─── Scrollbar ─────────────────────────────────────────────────────────── */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,217,255,0.15) transparent;
+}
+.scrollbar-thin::-webkit-scrollbar { width: 3px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(0,217,255,0.15);
+  border-radius: 2px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,217,255,0.35);
+}
+
+/* ─── DeckGL canvas ─────────────────────────────────────────────────────── */
+#deckgl-wrapper canvas { outline: none; }
+
+/* ─── Animations ────────────────────────────────────────────────────────── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.7); }
+}
+@keyframes scan-line {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  10%  { opacity: 0.4; }
+  90%  { opacity: 0.4; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+@keyframes hud-flicker {
+  0%, 98%, 100% { opacity: 1; }
+  99%            { opacity: 0.85; }
+}
+@keyframes arc-flow {
+  0%   { stroke-dashoffset: 1000; }
+  100% { stroke-dashoffset: 0; }
+}
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(0,217,255,0.6); }
+  50%       { box-shadow: 0 0 20px rgba(0,217,255,0.2); }
+}
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+@keyframes slide-in-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes fade-up {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+.animate-pulse-dot   { animation: pulse-dot 1.8s ease-in-out infinite; }
+.animate-scan-line   { animation: scan-line 4s linear infinite; }
+.animate-hud-flicker { animation: hud-flicker 8s ease-in-out infinite; }
+.animate-glow-pulse  { animation: glow-pulse 2.5s ease-in-out infinite; }
+.animate-fade-up     { animation: fade-up 0.25s ease-out forwards; }
+
+/* ─── HUD corner brackets ───────────────────────────────────────────────── */
+.hud-bracket {
+  position: relative;
+}
+.hud-bracket::before,
+.hud-bracket::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-color: rgba(0,217,255,0.4);
+  border-style: solid;
+}
+.hud-bracket::before {
+  top: 0; left: 0;
+  border-width: 1px 0 0 1px;
+}
+.hud-bracket::after {
+  bottom: 0; right: 0;
+  border-width: 0 1px 1px 0;
+}
+
+/* ─── Capacity bar ──────────────────────────────────────────────────────── */
+.capacity-bar {
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+.capacity-bar-fill {
+  height: 100%;
+  border-radius: 1px;
+  transition: width 0.6s ease;
+}
+
+/* ─── Tactical grid overlay ─────────────────────────────────────────────── */
+.tactical-grid {
+  background-image:
+    linear-gradient(rgba(0,217,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,217,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+/* ─── Glass panel ───────────────────────────────────────────────────────── */
+.glass-panel {
+  background: rgba(10,14,39,0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,217,255,0.1);
+}
+
+/* ─── Node type badge ───────────────────────────────────────────────────── */
+.node-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  border: 1px solid;
+}
+
+/* ─── Shimmer loading ───────────────────────────────────────────────────── */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.03) 25%,
+    rgba(255,255,255,0.07) 50%,
+    rgba(255,255,255,0.03) 75%
+  );
+  background-size: 200% auto;
+  animation: shimmer 1.5s linear infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* PALANTIR + JARVIS AESTHETIC ENHANCEMENTS                                    */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Glassmorphic Components ─────────────────────────────────────────────── */
+.glassmorphic {
+  background: rgba(13, 17, 23, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 217, 255, 0.15);
+}
+
+.glassmorphic:hover {
+  border-color: rgba(0, 217, 255, 0.25);
+  box-shadow: 0 0 20px rgba(0, 217, 255, 0.15);
+}
+
+/* ─── Neon Border Animation ───────────────────────────────────────────────── */
+.neon-border {
+  position: relative;
+  border: 1px solid rgba(0, 217, 255, 0.3);
+  box-shadow: 0 0 10px rgba(0, 217, 255, 0.2), inset 0 0 10px rgba(0, 217, 255, 0.05);
+}
+
+.neon-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(45deg, rgba(0, 217, 255, 0.1), transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  animation: neon-flicker 0.08s infinite;
+}
+
+/* ─── HUD Panel Enhancement ───────────────────────────────────────────────── */
+.hud-panel {
+  background: rgba(13, 17, 23, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 217, 255, 0.15);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.1), inset 0 0 10px rgba(0, 217, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.hud-panel:hover {
+  border-color: rgba(0, 217, 255, 0.25);
+  box-shadow: 0 0 25px rgba(0, 217, 255, 0.2), inset 0 0 10px rgba(0, 217, 255, 0.08);
+}
+
+/* ─── Data Flow Lines ─────────────────────────────────────────────────────── */
+.flow-line {
+  stroke: rgba(0, 217, 255, 0.4);
+  stroke-width: 2;
+  fill: none;
+  filter: drop-shadow(0 0 2px rgba(0, 217, 255, 0.3));
+  animation: glow-pulse 2.5s ease-in-out infinite;
+}
+
+.flow-line.critical {
+  stroke: rgba(255, 23, 68, 0.6);
+  filter: drop-shadow(0 0 3px rgba(255, 23, 68, 0.5));
+}
+
+/* ─── Node Markers with Glow ──────────────────────────────────────────────── */
+.node-marker {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.node-marker::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: inherit;
+  border-radius: inherit;
+  filter: blur(8px);
+  opacity: 0.5;
+  z-index: -1;
+}
+
+.node-marker.operational {
+  box-shadow: 0 0 12px rgba(0, 230, 118, 0.6);
+}
+
+.node-marker.degraded {
+  box-shadow: 0 0 12px rgba(255, 165, 0, 0.6);
+}
+
+.node-marker.critical {
+  box-shadow: 0 0 16px rgba(255, 23, 68, 0.8);
+  animation: pulse-red 0.8s infinite;
+}
+
+/* ─── Scan Line Effect ────────────────────────────────────────────────────── */
+.scan-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.scan-effect::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 217, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: scan-line-move 4s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes scan-line-move {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(100vh); }
+}
+
+/* ─── Floating Animation ──────────────────────────────────────────────────── */
+.float-subtle {
+  animation: float-subtle 6s ease-in-out infinite;
+}
+
+@keyframes float-subtle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+/* ─── Neon Text Glow ──────────────────────────────────────────────────────── */
+.neon-text {
+  text-shadow: 0 0 8px rgba(0, 217, 255, 0.6), 0 0 16px rgba(0, 217, 255, 0.3);
+}
+
+.neon-text.ai {
+  text-shadow: 0 0 8px rgba(157, 78, 221, 0.6), 0 0 16px rgba(157, 78, 221, 0.3);
+}
+
+.neon-text.alert {
+  text-shadow: 0 0 8px rgba(255, 23, 68, 0.6), 0 0 16px rgba(255, 23, 68, 0.3);
+}
+
+/* ─── Smooth Transitions ──────────────────────────────────────────────────── */
+.transition-glow {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ─── Cyberpunk Glitch ─────────────────────────────────────────────────── */
+@keyframes glitch {
+  0%, 100% { text-shadow: none; }
+  20% { text-shadow: -2px 0 rgba(0, 217, 255, 0.5); }
+  40% { text-shadow: 2px 0 rgba(157, 78, 221, 0.5); }
+  60% { text-shadow: -1px 0 rgba(0, 217, 255, 0.3); }
+  80% { text-shadow: 1px 0 rgba(157, 78, 221, 0.3); }
+}
+
+.glitch {
+  animation: glitch 0.3s linear;
+}
+
+/* ─── Data Streaming Animation ─────────────────────────────────────────────── */
+@keyframes data-flow {
+  0% { opacity: 0; transform: translateX(-10px); }
+  50% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(10px); }
+}
+
+.data-flow {
+  animation: data-flow 2s ease-in-out infinite;
+}
+
+/* ─── Loading Skeleton ────────────────────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 217, 255, 0.05) 25%,
+    rgba(0, 217, 255, 0.12) 50%,
+    rgba(0, 217, 255, 0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ─── Neon Flicker ────────────────────────────────────────────────────────── */
+@keyframes neon-flicker {
+  0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 0; }
+  20%, 24%, 55% { opacity: 1; }
+}
+
+.neon-flicker {
+  animation: neon-flicker 0.15s infinite;
+}
+
+/* ─── Grid Background Pattern ─────────────────────────────────────────────── */
+.grid-bg {
+  background-image: 
+    linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 217, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* ─── Responsive Adjustments ──────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .hud-panel {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+  }
+  
+  .neon-text {
+    text-shadow: 0 0 6px rgba(0, 217, 255, 0.4), 0 0 12px rgba(0, 217, 255, 0.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
