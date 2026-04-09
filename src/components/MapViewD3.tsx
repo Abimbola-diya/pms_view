@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useMemo, useCallback, useLayoutEffect } from 'react';
+import * as d3 from 'd3';
 import { useStore } from '@/stores';
 import { Node, Flow } from '@/types';
 
