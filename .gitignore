@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+venv/
+.venv-1/
+
+# Environment files (ignore real envs, keep example)
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+frontend/node_modules/
+.next/
+out/
+dist/
+build/
+
+# Output / data (do not commit large extracted data)
+output/
+data/
+backups/
+supabase_ready/
+
+# Logs
+*.log
+conservative_upload_log.txt
+node_metrics_upload_log.txt
+node_metrics_clean_upload_log.txt
+smart_upload_log.txt
+upload_remaining_log.txt
+
+# IDEs and editors
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Keys & credentials
+*.pem
+*.key
+*.p12
+*.pfx
+service-account*.json
+credentials.json
+secrets.json
+.git-credentials
+.netrc
+.aws/
+.docker/config.json
+.kube/
+kubeconfig
+
+# Databases
+*.sqlite3
+*.db
