@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 
+// Allow longer serverless runtime so cold-started backend requests can complete.
+export const maxDuration = 60;
+
 const DEFAULT_JARVIS_BACKEND_URL = 'https://cerebro-mj9g.onrender.com/';
-const DEFAULT_BACKEND_PATHS = ['/api/ask', '/api/ask/debug', '/', '/chat', '/api/chat', '/jarvis', '/api/jarvis'];
+const DEFAULT_BACKEND_PATHS = ['/api/ask'];
 
 function parseModelOutputToJSON(text: string) {
   // Try direct JSON parse
@@ -80,9 +83,17 @@ function buildBackendCandidateUrls(): string[] {
 
   const urls = new Set<string>();
 
-  // Respect fully specified endpoint URLs first.
+  // If a full endpoint URL is configured (non-root path), try it first.
   if (configuredUrl) {
-    urls.add(configuredUrl);
+    try {
+      const parsedConfigured = new URL(configuredUrl);
+      if (parsedConfigured.pathname && parsedConfigured.pathname !== '/') {
+        urls.add(configuredUrl);
+      }
+    } catch {
+      // Non-URL values are accepted as-is.
+      urls.add(configuredUrl);
+    }
   }
 
   let originBase = configuredUrl;
@@ -109,31 +120,32 @@ function buildBackendCandidateUrls(): string[] {
 
 async function callHttpBackend(prompt: string) {
   const apiKey = process.env.JARVIS_API_KEY;
+  const timeoutMsRaw = Number(process.env.JARVIS_BACKEND_TIMEOUT_MS || 45000);
+  const timeoutMs = Number.isFinite(timeoutMsRaw) && timeoutMsRaw > 0 ? timeoutMsRaw : 45000;
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    Accept: 'application/json',
   };
 
   if (apiKey) {
     headers.Authorization = `Bearer ${apiKey}`;
   }
 
-  const payload = {
-    prompt,
-    message: prompt,
-    query: prompt,
-    input: prompt,
-    text: prompt,
-    code: prompt,
-  };
+  const payload = { query: prompt };
 
   let lastError: unknown = null;
 
   for (const url of buildBackendCandidateUrls()) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
     try {
       const res = await fetch(url, {
         method: 'POST',
         headers,
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
 
       if (!res.ok) {
@@ -149,7 +161,13 @@ async function callHttpBackend(prompt: string) {
         return normalized;
       }
     } catch (err) {
-      lastError = err;
+      if (err instanceof Error && err.name === 'AbortError') {
+        lastError = `Timeout after ${timeoutMs}ms for ${url}`;
+      } else {
+        lastError = err;
+      }
+    } finally {
+      clearTimeout(timer);
     }
   }
 
@@ -219,11 +237,10 @@ export async function POST(req: Request) {
     }
 
     if (!modelResult) {
-      const actions = [
-        { type: 'message', text: `Received: ${prompt}` },
-        { type: 'zoom', longitude: 8.6753, latitude: 9.0820, zoom: 6 },
-      ];
-      return NextResponse.json({ text: 'Jarvis stub executed', actions });
+      return NextResponse.json({
+        text: 'I could not reach the Cerebro backend right now. Please retry in a few seconds.',
+        actions: [{ type: 'message', text: 'Backend connection failed.' }],
+      });
     }
 
     const text = modelResult.text;
