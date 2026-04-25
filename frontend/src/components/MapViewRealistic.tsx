@@ -25,6 +25,7 @@ export default function MapViewRealistic({ nodes = [], flows = [] }: MapViewProp
 
     Promise.all([
       import('d3'),
+      // @ts-ignore
       import('topojson-client'),
     ]).then(async ([d3Module, topojsonModule]) => {
       const d3 = (d3Module as any).default || d3Module;
