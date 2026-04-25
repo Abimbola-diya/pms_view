@@ -16,28 +16,28 @@ const config: Config = {
         'palantir-panel': '#111827',
         
         // Data Colors
-        'crude-gold': '#FFD700',
-        'crude-gold-dim': '#B8A000',
-        'refine-cyan': '#00D9FF',
-        'refine-cyan-dim': '#0099BB',
-        'retail-teal': '#1ABC9C',
-        'retail-teal-dim': '#0E7856',
-        'port-blue': '#0066CC',
-        'port-blue-dim': '#003D7A',
+        'crude-gold': '#B89263',
+        'crude-gold-dim': '#6E583D',
+        'refine-cyan': '#4E89AE',
+        'refine-cyan-dim': '#345E79',
+        'retail-teal': '#3F7D72',
+        'retail-teal-dim': '#2A554D',
+        'port-blue': '#40698F',
+        'port-blue-dim': '#2E4D69',
         
         // Alerts
-        'alert-red': '#FF1744',
-        'alert-red-dim': '#8B0000',
-        'caution-orange': '#FFA500',
-        'caution-orange-dim': '#994C00',
-        'healthy-green': '#00E676',
-        'healthy-green-dim': '#004D2E',
+        'alert-red': '#AE5A5A',
+        'alert-red-dim': '#6A3A3A',
+        'caution-orange': '#B48157',
+        'caution-orange-dim': '#6F5238',
+        'healthy-green': '#5F8F71',
+        'healthy-green-dim': '#385845',
         
         // AI & Info
-        'ai-purple': '#9D4EDD',
-        'ai-purple-accent': '#E0AAFF',
-        'info-yellow': '#FFE082',
-        'ai-neon': '#00D9FF',
+        'ai-purple': '#667AA6',
+        'ai-purple-accent': '#A9BDD8',
+        'info-yellow': '#C9B08A',
+        'ai-neon': '#5C89AF',
         
         // Text
         'text-primary': '#E8E8E8',

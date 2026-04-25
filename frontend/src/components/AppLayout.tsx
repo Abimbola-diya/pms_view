@@ -12,6 +12,7 @@ import dynamic from 'next/dynamic';
 const MapView = dynamic(() => import('./MapView'), { ssr: false });
 const SankeyView = dynamic(() => import('./SankeyView'), { ssr: false });
 const EcosystemView = dynamic(() => import('./EcosystemView'), { ssr: false });
+const UpstreamIntelligenceView = dynamic(() => import('./UpstreamIntelligenceView'), { ssr: false });
 
 export default function AppLayout() {
   const { nodes: storeNodes, flows: storeFlows, selected_node, active_view } = useStore();
@@ -26,6 +27,8 @@ export default function AppLayout() {
   const flowsArray = Array.from(storeFlows.values());
 
   const isLoading = nodesLoading || flowsLoading;
+  const isUpstreamIntelView = active_view === 'upstream_intelligence';
+  const showContextHud = !isUpstreamIntelView && (active_view === 'map' || active_view === 'hud');
 
   const activeNodeCount = nodesArray.filter(n => n.status === 'operational').length;
   const totalCapacity = nodesArray.reduce((sum, n) => sum + (n.capacity_bpd || 0), 0);
@@ -101,10 +104,18 @@ export default function AppLayout() {
             </div>
           </div>
         )}
+
+        {/* Full-page upstream intelligence brief */}
+        {active_view === 'upstream_intelligence' && (
+          <div className="w-full h-full">
+            <UpstreamIntelligenceView />
+          </div>
+        )}
       </div>
 
       {/* Top-right: System Status HUD */}
-      <div className="absolute top-16 right-4 z-40 space-y-2">
+      {showContextHud && (
+      <div className="absolute top-16 right-4 z-40 space-y-2 hidden xl:block">
         {/* System Status */}
         <div className="hud-panel w-64">
           <div className="flex items-center justify-between mb-3">
@@ -155,13 +166,16 @@ export default function AppLayout() {
           </div>
         </div>
       </div>
+      )}
 
       {/* Bottom-right: Layer control and Chat */}
       <div className="absolute bottom-4 right-4 z-40 space-y-3">
         {/* Layer control — floating panel */}
-        <div className="pointer-events-auto">
-          <LayerControl />
-        </div>
+        {showContextHud && (
+          <div className="pointer-events-auto">
+            <LayerControl />
+          </div>
+        )}
 
         {/* Jarvis chat */}
         <div className="pointer-events-auto">

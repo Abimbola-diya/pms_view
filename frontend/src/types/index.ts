@@ -27,7 +27,7 @@ export type ProductType = 'crude_oil' | 'pms' | 'ago' | 'kerosene' | 'lpng' | 'b
 
 export type TransportMode = 'pipeline' | 'vessel' | 'truck' | 'rail';
 
-export type ViewMode = 'map' | 'ecosystem' | 'sankey' | 'hud';
+export type ViewMode = 'map' | 'ecosystem' | 'sankey' | 'hud' | 'upstream_intelligence';
 
 export type AlertLevel = 'healthy' | 'caution' | 'critical';
 

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { Map as MapIcon, Network, GitBranch, MessageSquare, Search, X, ChevronRight } from 'lucide-react';
+import { Map as MapIcon, Network, GitBranch, MessageSquare, Search, X, ChevronRight, BarChart3 } from 'lucide-react';
 import { useStore } from '@/stores';
 import { ViewMode, NODE_TYPE_CONFIG } from '@/types';
 import { searchNodes } from '@/lib/supabase';
@@ -11,6 +11,7 @@ const VIEWS: { id: ViewMode; label: string; icon: React.ReactNode; shortLabel: s
   { id: 'map',       label: 'End-to-End Map',  shortLabel: 'MAP',       icon: <MapIcon size={12} /> },
   { id: 'ecosystem', label: 'Ecosystem',        shortLabel: 'ECOSYSTEM', icon: <Network size={12} /> },
   { id: 'sankey',    label: 'Sankey Flow',      shortLabel: 'SANKEY',    icon: <GitBranch size={12} /> },
+  { id: 'upstream_intelligence', label: 'Upstream Intel', shortLabel: 'INTEL', icon: <BarChart3 size={12} /> },
 ];
 
 export default function TopNav() {
@@ -73,7 +74,7 @@ export default function TopNav() {
       className="absolute top-0 left-0 right-0 h-11 z-40 flex items-center px-3 gap-0"
       style={{
         background: 'linear-gradient(180deg, rgba(13,17,23,0.98) 0%, rgba(8,11,30,0.95) 100%)',
-        borderBottom: '1px solid rgba(0,217,255,0.15)',
+        borderBottom: '1px solid rgba(97,132,162,0.25)',
         backdropFilter: 'blur(4px)',
       }}
     >
@@ -82,9 +83,9 @@ export default function TopNav() {
         <div className="flex items-center gap-1.5">
           <div
             className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0"
-            style={{ background: 'rgba(0,217,255,0.12)', border: '1px solid rgba(0,217,255,0.3)' }}
+            style={{ background: 'rgba(96,132,162,0.2)', border: '1px solid rgba(108,145,177,0.45)' }}
           >
-            <span className="text-[8px] font-bold text-[#00D9FF] tracking-wider">PMS</span>
+            <span className="text-[8px] font-bold text-[#AFC8DE] tracking-wider">PMS</span>
           </div>
           <div className="hidden sm:block">
             <div className="text-[11px] font-bold text-[#E8E8E8] font-mono tracking-widest leading-none">
@@ -107,9 +108,9 @@ export default function TopNav() {
               onClick={() => set_view(v.id)}
               className="flex items-center gap-1.5 px-3 h-7 rounded text-[10px] font-mono font-medium tracking-wider transition-all"
               style={{
-                background: active ? 'rgba(0,217,255,0.12)' : 'transparent',
-                color: active ? '#00D9FF' : '#555',
-                border: active ? '1px solid rgba(0,217,255,0.25)' : '1px solid transparent',
+                background: active ? 'rgba(96,132,162,0.22)' : 'transparent',
+                color: active ? '#CFE0F0' : '#6D7891',
+                border: active ? '1px solid rgba(108,145,177,0.4)' : '1px solid transparent',
               }}
             >
               {v.icon}
@@ -126,9 +127,9 @@ export default function TopNav() {
           <div className="flex items-center gap-1.5">
             <div
               className="flex items-center gap-2 h-7 px-2.5 rounded"
-              style={{ background: 'rgba(0,217,255,0.06)', border: '1px solid rgba(0,217,255,0.2)', width: '220px' }}
+              style={{ background: 'rgba(92,132,165,0.1)', border: '1px solid rgba(108,145,177,0.28)', width: '220px' }}
             >
-              <Search size={11} className="text-[#00D9FF] flex-shrink-0" />
+              <Search size={11} className="text-[#8EB0CC] flex-shrink-0" />
               <input
                 autoFocus
                 value={searchQuery}
@@ -136,7 +137,7 @@ export default function TopNav() {
                 placeholder="Search facilities..."
                 className="flex-1 bg-transparent text-[11px] font-mono text-[#E8E8E8] placeholder-[#555] outline-none"
               />
-              {searching && <div className="w-2 h-2 rounded-full bg-[#00D9FF] animate-pulse flex-shrink-0" />}
+              {searching && <div className="w-2 h-2 rounded-full bg-[#8EB0CC] animate-pulse flex-shrink-0" />}
             </div>
             <button onClick={() => { setSearchOpen(false); setSearchQuery(''); setSearchResults([]); }}
               className="text-[#555] hover:text-[#E8E8E8] transition-colors">
@@ -146,7 +147,7 @@ export default function TopNav() {
         ) : (
           <button
             onClick={() => setSearchOpen(true)}
-            className="flex items-center gap-1.5 h-7 px-2.5 rounded text-[10px] font-mono text-[#555] hover:text-[#00D9FF] transition-colors"
+            className="flex items-center gap-1.5 h-7 px-2.5 rounded text-[10px] font-mono text-[#555] hover:text-[#AFC8DE] transition-colors"
             style={{ border: '1px solid rgba(255,255,255,0.06)' }}
           >
             <Search size={12} />
@@ -158,7 +159,7 @@ export default function TopNav() {
         {searchResults.length > 0 && (
           <div
             className="absolute top-9 left-0 w-[320px] rounded overflow-hidden z-50"
-            style={{ background: 'rgba(8,11,30,0.98)', border: '1px solid rgba(0,217,255,0.2)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}
+            style={{ background: 'rgba(8,11,30,0.98)', border: '1px solid rgba(108,145,177,0.32)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}
           >
             {searchResults.map((node) => {
               const cfg = NODE_TYPE_CONFIG[node.node_type.toLowerCase()];
@@ -187,7 +188,7 @@ export default function TopNav() {
       {/* Live stats */}
       <div className="hidden md:flex items-center gap-4 text-[9px] font-mono text-[#555] mr-4 flex-shrink-0">
         <div className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#00E676] animate-pulse-dot" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#6BA286] animate-pulse-dot" />
           <span className="text-[#A0A0A0]">{nodes.size.toLocaleString()}</span>
           <span>NODES</span>
         </div>
@@ -211,14 +212,14 @@ export default function TopNav() {
         onClick={toggle_chat}
         className="flex items-center gap-1.5 h-7 px-3 rounded text-[10px] font-mono font-medium tracking-wider transition-all flex-shrink-0"
         style={{
-          background: chat_open ? 'rgba(157,78,221,0.18)' : 'rgba(157,78,221,0.06)',
-          color: chat_open ? '#E0AAFF' : '#9D4EDD',
-          border: `1px solid ${chat_open ? 'rgba(157,78,221,0.4)' : 'rgba(157,78,221,0.2)'}`,
+          background: chat_open ? 'rgba(93,117,150,0.22)' : 'rgba(93,117,150,0.08)',
+          color: chat_open ? '#D6E4F1' : '#90A8C4',
+          border: `1px solid ${chat_open ? 'rgba(110,140,172,0.42)' : 'rgba(110,140,172,0.25)'}`,
         }}
       >
         <MessageSquare size={12} />
         <span>JARVIS</span>
-        {chat_open && <span className="w-1.5 h-1.5 rounded-full bg-[#E0AAFF] animate-pulse-dot" />}
+        {chat_open && <span className="w-1.5 h-1.5 rounded-full bg-[#D6E4F1] animate-pulse-dot" />}
       </button>
     </div>
   );

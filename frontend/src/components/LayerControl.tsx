@@ -7,17 +7,17 @@ import { useStore } from '@/stores';
 import { LayerKey } from '@/types';
 
 const LAYERS: { id: LayerKey; label: string; color: string }[] = [
-  { id: 'flows',         label: 'Flow Routes',    color: '#00D9FF' },
-  { id: 'ais_tracking',  label: 'AIS Vessels',    color: '#FFD700' },
-  { id: 'weather',       label: 'Weather',        color: '#78909C' },
-  { id: 'news',          label: 'News Events',    color: '#FFA500' },
-  { id: 'price_heatmap', label: 'Price Heatmap',  color: '#FF1744' },
-  { id: 'anomalies',     label: 'Anomalies',      color: '#FF1744' },
+  { id: 'flows',         label: 'Flow Routes',    color: '#6A95B7' },
+  { id: 'ais_tracking',  label: 'AIS Vessels',    color: '#8CA5BC' },
+  { id: 'weather',       label: 'Weather',        color: '#7C8E9F' },
+  { id: 'news',          label: 'News Events',    color: '#A68462' },
+  { id: 'price_heatmap', label: 'Price Heatmap',  color: '#A96A6A' },
+  { id: 'anomalies',     label: 'Anomalies',      color: '#A96A6A' },
   { id: 'pipelines',     label: 'Pipelines',      color: '#6B7A96' },
-  { id: 'incidents',     label: 'Incidents',      color: '#FF1744' },
-  { id: 'production_heatmap', label: 'Production Heatmap', color: '#FFD700' },
+  { id: 'incidents',     label: 'Incidents',      color: '#A96A6A' },
+  { id: 'production_heatmap', label: 'Production Heatmap', color: '#9BAFC3' },
   { id: 'satellite',     label: 'Satellite',      color: '#78909C' },
-  { id: 'terminals',     label: 'Terminals',      color: '#EC4899' },
+  { id: 'terminals',     label: 'Terminals',      color: '#5D84A4' },
 ];
 
 export default function LayerControl() {
@@ -35,7 +35,7 @@ export default function LayerControl() {
             className="rounded-lg overflow-hidden"
             style={{
               background: 'rgba(10,14,39,0.95)',
-              border: '1px solid rgba(0,217,255,0.15)',
+              border: '1px solid rgba(105,138,167,0.28)',
               minWidth: '160px',
             }}
           >
@@ -79,8 +79,8 @@ export default function LayerControl() {
         className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-mono transition-all"
         style={{
           background: 'rgba(10,14,39,0.95)',
-          border: '1px solid rgba(0,217,255,0.2)',
-          color: '#00D9FF',
+          border: '1px solid rgba(105,138,167,0.35)',
+          color: '#BCD1E4',
         }}
       >
         <Layers size={13} />

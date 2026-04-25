@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 export const maxDuration = 60;
 
 const DEFAULT_JARVIS_BACKEND_URL = 'https://cerebro-mj9g.onrender.com/';
-const DEFAULT_BACKEND_PATHS = ['/api/ask'];
+const DEFAULT_BACKEND_PATHS = ['/api/research/synthesize', '/api/ask'];
 
 function parseModelOutputToJSON(text: string) {
   // Try direct JSON parse
@@ -38,6 +38,26 @@ function normalizeResponsePayload(payload: unknown): { text: string; actions: un
 
   if (typeof payload === 'object') {
     const obj = payload as Record<string, unknown>;
+
+    // Cerebro research/synthesize response shape.
+    if (obj.synthesis && typeof obj.synthesis === 'object') {
+      const synthesis = obj.synthesis as Record<string, unknown>;
+      const textCandidate =
+        synthesis.one_paragraph_summary ??
+        synthesis.executive_summary ??
+        synthesis.brief ??
+        synthesis.summary;
+      const text =
+        typeof textCandidate === 'string'
+          ? textCandidate
+          : textCandidate != null
+            ? String(textCandidate)
+            : '';
+      if (text) {
+        return { text, actions: [] };
+      }
+    }
+
     const firstChoice = Array.isArray(obj.choices) ? (obj.choices[0] as Record<string, unknown>) : null;
     const firstMessage = firstChoice?.message as Record<string, unknown> | undefined;
 
@@ -132,7 +152,11 @@ async function callHttpBackend(prompt: string) {
     headers.Authorization = `Bearer ${apiKey}`;
   }
 
-  const payload = { query: prompt };
+  const payload = {
+    query: prompt,
+    thinking_mode: false,
+    max_attempts: 6,
+  };
 
   let lastError: unknown = null;
 
