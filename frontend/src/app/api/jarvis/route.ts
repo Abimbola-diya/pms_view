@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 
 // Allow longer serverless runtime so cold-started backend requests can complete.
-export const maxDuration = 60;
+export const maxDuration = 180;
 
 const DEFAULT_JARVIS_BACKEND_URL = 'https://cerebro-mj9g.onrender.com/';
-const DEFAULT_BACKEND_PATHS = ['/api/research/synthesize', '/api/ask'];
+const DEFAULT_BACKEND_PATHS = ['/api/research/synthesize'];
 
 function parseModelOutputToJSON(text: string) {
   // Try direct JSON parse
@@ -39,14 +39,35 @@ function normalizeResponsePayload(payload: unknown): { text: string; actions: un
   if (typeof payload === 'object') {
     const obj = payload as Record<string, unknown>;
 
+    // Common error payloads from upstream providers or proxy wrappers.
+    const directError =
+      (typeof obj.error === 'string' && obj.error) ||
+      (obj.error && typeof obj.error === 'object' && typeof (obj.error as Record<string, unknown>).message === 'string'
+        ? ((obj.error as Record<string, unknown>).message as string)
+        : '');
+    if (directError) {
+      return { text: `Backend error: ${directError}`, actions: [] };
+    }
+
     // Cerebro research/synthesize response shape.
     if (obj.synthesis && typeof obj.synthesis === 'object') {
       const synthesis = obj.synthesis as Record<string, unknown>;
+      const synthesisOutput =
+        synthesis.synthesis_output && typeof synthesis.synthesis_output === 'object'
+          ? (synthesis.synthesis_output as Record<string, unknown>)
+          : null;
+
       const textCandidate =
         synthesis.one_paragraph_summary ??
         synthesis.executive_summary ??
         synthesis.brief ??
-        synthesis.summary;
+        synthesis.summary ??
+        synthesisOutput?.one_paragraph_summary ??
+        synthesisOutput?.executive_summary ??
+        synthesisOutput?.brief ??
+        synthesisOutput?.summary ??
+        synthesisOutput?.synthesis;
+
       const text =
         typeof textCandidate === 'string'
           ? textCandidate
@@ -56,6 +77,28 @@ function normalizeResponsePayload(payload: unknown): { text: string; actions: un
       if (text) {
         return { text, actions: [] };
       }
+
+      // If synthesis exists but is empty, surface provider failures instead of returning an empty payload.
+      if (Array.isArray(obj.provider_failures) && obj.provider_failures.length) {
+        const firstFailure = obj.provider_failures[0] as Record<string, unknown>;
+        const provider = typeof firstFailure?.provider === 'string' ? firstFailure.provider : 'provider';
+        const reason =
+          typeof firstFailure?.reason === 'string'
+            ? firstFailure.reason
+            : typeof firstFailure?.error === 'string'
+              ? firstFailure.error
+              : 'request failed';
+
+        return {
+          text: `Backend research provider issue (${provider}): ${reason}. Check backend provider credentials/configuration.`,
+          actions: [],
+        };
+      }
+
+      return {
+        text: 'Backend returned synthesis payload, but no summary text was produced. Check provider credentials and model settings on Cerebro backend.',
+        actions: [],
+      };
     }
 
     const firstChoice = Array.isArray(obj.choices) ? (obj.choices[0] as Record<string, unknown>) : null;
@@ -84,7 +127,10 @@ function normalizeResponsePayload(payload: unknown): { text: string; actions: un
 
     if (obj.data) return normalizeResponsePayload(obj.data);
 
-    return { text: '', actions: [] };
+    return {
+      text: `Backend returned an unrecognized response shape: ${JSON.stringify(obj).slice(0, 260)}`,
+      actions: [],
+    };
   }
 
   return { text: String(payload), actions: [] };
@@ -94,6 +140,7 @@ function buildBackendCandidateUrls(): string[] {
   const configuredUrl = (
     process.env.JARVIS_BACKEND_URL ||
     process.env.JARVIS_LLM_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
     DEFAULT_JARVIS_BACKEND_URL
   ).trim();
 
@@ -138,6 +185,22 @@ function buildBackendCandidateUrls(): string[] {
   return Array.from(urls);
 }
 
+function buildPayloadCandidates(prompt: string) {
+  const base = {
+    thinking_mode: false,
+    max_attempts: 6,
+  };
+
+  return [
+    { ...base, query: prompt },
+    { ...base, prompt },
+    { ...base, message: prompt },
+    { query: prompt },
+    { prompt },
+    { message: prompt },
+  ];
+}
+
 async function callHttpBackend(prompt: string) {
   const apiKey = process.env.JARVIS_API_KEY;
   const timeoutMsRaw = Number(process.env.JARVIS_BACKEND_TIMEOUT_MS || 45000);
@@ -152,46 +215,45 @@ async function callHttpBackend(prompt: string) {
     headers.Authorization = `Bearer ${apiKey}`;
   }
 
-  const payload = {
-    query: prompt,
-    thinking_mode: false,
-    max_attempts: 6,
-  };
+  const payloadCandidates = buildPayloadCandidates(prompt);
 
   let lastError: unknown = null;
 
   for (const url of buildBackendCandidateUrls()) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    for (const payload of payloadCandidates) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
 
-    try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      });
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
 
-      if (!res.ok) {
-        lastError = `HTTP ${res.status} from ${url}`;
-        continue;
+        if (!res.ok) {
+          const errBody = await res.text().catch(() => '');
+          lastError = `HTTP ${res.status} from ${url} body=${errBody.slice(0, 180)}`;
+          continue;
+        }
+
+        const contentType = res.headers.get('content-type') || '';
+        const raw = contentType.includes('application/json') ? await res.json() : await res.text();
+        const normalized = normalizeResponsePayload(raw);
+
+        if (normalized && (normalized.text || normalized.actions.length)) {
+          return normalized;
+        }
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') {
+          lastError = `Timeout after ${timeoutMs}ms for ${url}`;
+        } else {
+          lastError = err;
+        }
+      } finally {
+        clearTimeout(timer);
       }
-
-      const contentType = res.headers.get('content-type') || '';
-      const raw = contentType.includes('application/json') ? await res.json() : await res.text();
-      const normalized = normalizeResponsePayload(raw);
-
-      if (normalized && (normalized.text || normalized.actions.length)) {
-        return normalized;
-      }
-    } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') {
-        lastError = `Timeout after ${timeoutMs}ms for ${url}`;
-      } else {
-        lastError = err;
-      }
-    } finally {
-      clearTimeout(timer);
     }
   }
 
@@ -236,7 +298,7 @@ async function callGemini(prompt: string) {
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
-    const prompt = String(body?.prompt || '');
+    const prompt = String(body?.prompt || body?.query || body?.message || '');
 
     // Choose provider
     const provider = (process.env.JARVIS_PROVIDER || 'http').toLowerCase();
@@ -261,9 +323,19 @@ export async function POST(req: Request) {
     }
 
     if (!modelResult) {
+      const backendHints = {
+        provider,
+        hasBackendUrl: Boolean(
+          process.env.JARVIS_BACKEND_URL || process.env.JARVIS_LLM_URL || process.env.NEXT_PUBLIC_API_URL
+        ),
+        candidateUrls: buildBackendCandidateUrls(),
+      };
+
+      console.error('Jarvis proxy unavailable', backendHints);
       return NextResponse.json({
         text: 'I could not reach the Cerebro backend right now. Please retry in a few seconds.',
         actions: [{ type: 'message', text: 'Backend connection failed.' }],
+        debug: process.env.NODE_ENV === 'production' ? undefined : backendHints,
       });
     }
 

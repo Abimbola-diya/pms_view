@@ -41,7 +41,16 @@ export default function JarvisChat() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: text }),
       });
-      const data = await res.json();
+
+      const contentType = res.headers.get('content-type') || '';
+      const data = contentType.includes('application/json')
+        ? await res.json()
+        : { text: await res.text() };
+
+      if (!res.ok) {
+        const failureText = String(data?.text || data?.error || `Request failed (${res.status})`);
+        throw new Error(failureText);
+      }
 
       if (data?.text) {
         add_chat_message({ id: (Date.now() + 1).toString(), role: 'assistant', content: data.text, timestamp: new Date().toISOString() });
@@ -60,8 +69,11 @@ export default function JarvisChat() {
           }
         }
       }
-    } catch (e) {
-      add_chat_message({ id: (Date.now() + 3).toString(), role: 'assistant', content: 'Jarvis failed to respond (local stub).', timestamp: new Date().toISOString() });
+    } catch (e: any) {
+      const errorText = typeof e?.message === 'string' && e.message.trim()
+        ? e.message
+        : 'Jarvis request failed.';
+      add_chat_message({ id: (Date.now() + 3).toString(), role: 'assistant', content: `Jarvis error: ${errorText}`, timestamp: new Date().toISOString() });
     } finally {
       set_ai_thinking(false);
     }
