@@ -3,7 +3,6 @@ const nextConfig = {
   reactStrictMode: false,
   typescript: {
     tsconfigPath: './tsconfig.json',
-    ignoreBuildErrors: true,
   },
   webpack: (config) => {
     config.module.rules.push({ test: /\.(glsl|vs|fs)$/, use: 'raw-loader' });

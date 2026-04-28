@@ -265,37 +265,37 @@ export default function MapViewD3({ nodes, flows }: MapViewProps) {
       .attr('class', 'nodes')
       .selectAll('g')
       .data(visibleNodes)
-      .join((enter) =>
+      .join((enter: any) =>
         enter
           .append('g')
-          .attr('class', (d) => `node node-${d.id}`)
+          .attr('class', (d: Node) => `node node-${d.id}`)
           .attr(
             'transform',
-            (d) => `translate(${projection([d.longitude, d.latitude])![0]},${projection([d.longitude, d.latitude])![1]})`
+            (d: Node) => `translate(${projection([d.longitude, d.latitude])![0]},${projection([d.longitude, d.latitude])![1]})`
           )
-          .call((g) => {
+          .call((g: any) => {
             // Background ring (pulse effect when not selected)
             g.append('circle')
               .attr('class', 'node-ring')
-              .attr('r', (d) => getNodeRadius(d) * 3)
+              .attr('r', (d: Node) => getNodeRadius(d) * 3)
               .attr('fill', 'none')
-              .attr('stroke', (d) => getNodeColor(d))
+              .attr('stroke', (d: Node) => getNodeColor(d))
               .attr('stroke-width', 1)
               .attr('opacity', 0.1);
 
             // Main node circle
             g.append('circle')
               .attr('class', 'node-core')
-              .attr('r', (d) => getNodeRadius(d))
-              .attr('fill', (d) => getNodeColor(d))
+              .attr('r', (d: Node) => getNodeRadius(d))
+              .attr('fill', (d: Node) => getNodeColor(d))
               .attr('opacity', 0.85);
 
             // Glow shadow
             g.append('circle')
               .attr('class', 'node-glow')
-              .attr('r', (d) => getNodeRadius(d))
+              .attr('r', (d: Node) => getNodeRadius(d))
               .attr('fill', 'none')
-              .attr('stroke', (d) => getNodeColor(d))
+              .attr('stroke', (d: Node) => getNodeColor(d))
               .attr('stroke-width', 2)
               .attr('opacity', 0.0)
               .attr('filter', `drop-shadow(0 0 8px ${COLORS.accent})`);
@@ -305,23 +305,23 @@ export default function MapViewD3({ nodes, flows }: MapViewProps) {
               g.append('text')
                 .attr('class', 'node-label')
                 .attr('x', 0)
-                .attr('y', (d) => getNodeRadius(d) + 14)
+                .attr('y', (d: Node) => getNodeRadius(d) + 14)
                 .attr('text-anchor', 'middle')
                 .attr('font-family', "'JetBrains Mono', monospace")
                 .attr('font-size', 8)
                 .attr('font-weight', 500)
                 .attr('fill', COLORS.textSecondary)
                 .attr('pointer-events', 'none')
-                .text((d) => d.name.substring(0, 12));
+                .text((d: Node) => d.name.substring(0, 12));
             }
 
             // Status indicator
             g.append('circle')
               .attr('class', 'status-dot')
-              .attr('cx', (d) => getNodeRadius(d) + 3)
+              .attr('cx', (d: Node) => getNodeRadius(d) + 3)
               .attr('cy', 0)
               .attr('r', 3)
-              .attr('fill', (d) => {
+              .attr('fill', (d: Node) => {
                 if (d.status === 'operational') return COLORS.success;
                 if (d.status === 'maintenance') return COLORS.warning;
                 if (d.status === 'shutdown') return COLORS.danger;
@@ -331,7 +331,7 @@ export default function MapViewD3({ nodes, flows }: MapViewProps) {
       );
 
     // Add hover and click interactions
-    nodeGroup.on('mouseenter', function (event, d: Node) {
+    nodeGroup.on('mouseenter', function (this: SVGGElement, event: MouseEvent, d: Node) {
       select(this)
         .select('.node-core')
         .transition()
@@ -353,7 +353,7 @@ export default function MapViewD3({ nodes, flows }: MapViewProps) {
       set_hovered_node(d.id);
     });
 
-    nodeGroup.on('mouseleave', function (event, d: Node) {
+    nodeGroup.on('mouseleave', function (this: SVGGElement, event: MouseEvent, d: Node) {
       select(this)
         .select('.node-core')
         .transition()
@@ -366,7 +366,7 @@ export default function MapViewD3({ nodes, flows }: MapViewProps) {
       set_hovered_node(null);
     });
 
-    nodeGroup.on('click', (event, d: Node) => {
+    nodeGroup.on('click', (event: MouseEvent, d: Node) => {
       event.stopPropagation();
       set_selected_node(d.id);
     });

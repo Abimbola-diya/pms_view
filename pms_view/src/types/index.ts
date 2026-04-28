@@ -27,7 +27,7 @@ export type ProductType = 'crude_oil' | 'pms' | 'ago' | 'kerosene' | 'lpng' | 'b
 
 export type TransportMode = 'pipeline' | 'vessel' | 'truck' | 'rail';
 
-export type ViewMode = 'map' | 'ecosystem' | 'sankey' | 'hud';
+export type ViewMode = 'map' | 'ecosystem' | 'sankey' | 'hud' | 'upstream_intelligence';
 
 export type AlertLevel = 'healthy' | 'caution' | 'critical';
 
@@ -61,9 +61,11 @@ export interface Flow {
   flow_type: string;
   product_type?: string;
   volume_bpd?: number;
+  avg_volume_value?: number;
   route_distance_km?: number;
   estimated_transit_days?: number;
   status: string;
+  is_active?: boolean;
   operational_frequency?: string;
   last_updated?: string;
   metadata?: Record<string, unknown>;
