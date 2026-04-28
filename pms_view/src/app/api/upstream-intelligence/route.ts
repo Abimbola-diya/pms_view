@@ -1,11 +1,13 @@
-import { NextResponse } from 'next/server';
+declare const process: {
+  env: Record<string, string | undefined>;
+};
 
 // Upstream requests can take longer due multi-source research.
 export const maxDuration = 180;
 
 const DEFAULT_BACKEND_BASE_URL = 'https://cerebro-mj9g.onrender.com/';
-const DEFAULT_BACKEND_PATHS = ['/api/upstream/intelligence'];
-const LOCAL_DEV_URL = 'http://127.0.0.1:8010/api/upstream/intelligence';
+const DEFAULT_BACKEND_PATHS = ['/api/research/synthesize', '/api/upstream/intelligence'];
+const LOCAL_DEV_URL = 'http://127.0.0.1:8010/api/research/synthesize';
 
 function normalizePayload(payload: unknown): Record<string, unknown> | null {
   if (!payload || typeof payload !== 'object') {
@@ -13,6 +15,33 @@ function normalizePayload(payload: unknown): Record<string, unknown> | null {
   }
 
   const objectPayload = payload as Record<string, unknown>;
+
+  if (typeof objectPayload.error === 'string') {
+    return { error: objectPayload.error, dashboard: null };
+  }
+
+  if (objectPayload.synthesis && typeof objectPayload.synthesis === 'object') {
+    const synthesis = objectPayload.synthesis as Record<string, unknown>;
+    const synthesisOutput =
+      synthesis.synthesis_output && typeof synthesis.synthesis_output === 'object'
+        ? (synthesis.synthesis_output as Record<string, unknown>)
+        : null;
+
+    const summary =
+      synthesis.one_paragraph_summary ??
+      synthesis.executive_summary ??
+      synthesis.brief ??
+      synthesis.summary ??
+      synthesisOutput?.one_paragraph_summary ??
+      synthesisOutput?.executive_summary ??
+      synthesisOutput?.brief ??
+      synthesisOutput?.summary ??
+      synthesisOutput?.synthesis;
+
+    if (typeof summary === 'string' && summary.trim()) {
+      return { dashboard: { summary } };
+    }
+  }
 
   if (objectPayload.dashboard && typeof objectPayload.dashboard === 'object') {
     return objectPayload as Record<string, unknown>;
@@ -38,7 +67,7 @@ function buildBackendCandidateUrls(): string[] {
   ).trim();
 
   const configuredPaths = process.env.UPSTREAM_INTEL_BACKEND_PATHS
-    ? process.env.UPSTREAM_INTEL_BACKEND_PATHS.split(',').map((path) => path.trim()).filter(Boolean)
+    ? process.env.UPSTREAM_INTEL_BACKEND_PATHS.split(',').map((path: string) => path.trim()).filter(Boolean)
     : DEFAULT_BACKEND_PATHS;
 
   const urls = new Set<string>();
@@ -111,7 +140,8 @@ export async function POST(req: Request) {
       });
 
       if (!response.ok) {
-        lastError = `HTTP ${response.status} from ${candidateUrl}`;
+        const errorBody = await response.text().catch(() => '');
+        lastError = `HTTP ${response.status} from ${candidateUrl} body=${errorBody.slice(0, 180)}`;
         continue;
       }
 
@@ -122,7 +152,7 @@ export async function POST(req: Request) {
 
       const normalized = normalizePayload(rawPayload);
       if (normalized) {
-        return NextResponse.json(normalized);
+        return Response.json(normalized);
       }
 
       lastError = `Invalid payload shape from ${candidateUrl}`;
@@ -137,7 +167,7 @@ export async function POST(req: Request) {
     }
   }
 
-  return NextResponse.json(
+  return Response.json(
     {
       error: 'upstream_intelligence_unavailable',
       detail: lastError || 'All backend candidates failed.',
