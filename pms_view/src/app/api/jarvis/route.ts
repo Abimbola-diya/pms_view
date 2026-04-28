@@ -185,26 +185,10 @@ function buildBackendCandidateUrls(): string[] {
   return Array.from(urls);
 }
 
-function buildPayloadCandidates(prompt: string) {
-  const base = {
-    thinking_mode: false,
-    max_attempts: 6,
-  };
-
-  return [
-    { ...base, query: prompt },
-    { ...base, prompt },
-    { ...base, message: prompt },
-    { query: prompt },
-    { prompt },
-    { message: prompt },
-  ];
-}
-
 async function callHttpBackend(prompt: string) {
   const apiKey = process.env.JARVIS_API_KEY;
-  const timeoutMsRaw = Number(process.env.JARVIS_BACKEND_TIMEOUT_MS || 45000);
-  const timeoutMs = Number.isFinite(timeoutMsRaw) && timeoutMsRaw > 0 ? timeoutMsRaw : 45000;
+  const timeoutMsRaw = Number(process.env.JARVIS_BACKEND_TIMEOUT_MS || 150000);
+  const timeoutMs = Number.isFinite(timeoutMsRaw) && timeoutMsRaw > 0 ? timeoutMsRaw : 150000;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -215,45 +199,49 @@ async function callHttpBackend(prompt: string) {
     headers.Authorization = `Bearer ${apiKey}`;
   }
 
-  const payloadCandidates = buildPayloadCandidates(prompt);
+  const payload = {
+    query: prompt,
+    thinking_mode: false,
+    max_attempts: 6,
+  };
 
   let lastError: unknown = null;
 
   for (const url of buildBackendCandidateUrls()) {
-    for (const payload of payloadCandidates) {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
 
-      try {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(payload),
-          signal: controller.signal,
-        });
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
 
-        if (!res.ok) {
-          const errBody = await res.text().catch(() => '');
-          lastError = `HTTP ${res.status} from ${url} body=${errBody.slice(0, 180)}`;
-          continue;
-        }
-
-        const contentType = res.headers.get('content-type') || '';
-        const raw = contentType.includes('application/json') ? await res.json() : await res.text();
-        const normalized = normalizeResponsePayload(raw);
-
-        if (normalized && (normalized.text || normalized.actions.length)) {
-          return normalized;
-        }
-      } catch (err) {
-        if (err instanceof Error && err.name === 'AbortError') {
-          lastError = `Timeout after ${timeoutMs}ms for ${url}`;
-        } else {
-          lastError = err;
-        }
-      } finally {
-        clearTimeout(timer);
+      if (!res.ok) {
+        const errBody = await res.text().catch(() => '');
+        lastError = `HTTP ${res.status} from ${url} body=${errBody.slice(0, 180)}`;
+        continue;
       }
+
+      const contentType = res.headers.get('content-type') || '';
+      const raw = contentType.includes('application/json') ? await res.json() : await res.text();
+      const normalized = normalizeResponsePayload(raw);
+
+      if (normalized && (normalized.text || normalized.actions.length)) {
+        return normalized;
+      }
+
+      lastError = `Unrecognized response shape from ${url}`;
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        lastError = `Timeout after ${timeoutMs}ms for ${url}`;
+      } else {
+        lastError = err;
+      }
+    } finally {
+      clearTimeout(timer);
     }
   }
 
